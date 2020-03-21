@@ -22,7 +22,7 @@ public class Functions {
 	
 	
 	public static boolean matchesOnlyChar(String contingut) {
-		if (contingut.matches("^[ A-Za-zñÑáéíóúÁÉÍÓÚ]+$")) {
+		if (contingut.matches("^[ A-Za-zñÑáàéíóòçúÁÀÉÍÓÒÚ]+$")) {
 			return true;
 		}
 		else {
