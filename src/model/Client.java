@@ -1,4 +1,4 @@
-package objects;
+package model;
 
 public class Client {
     String dni, name, surname; // ROL = reader, editor
