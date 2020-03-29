@@ -36,6 +36,13 @@ public class Client {
 	public void setSurname(String surname) {
 		this.surname = surname;
 	}
+	
+	
+	
+	@Override
+	public String toString() {
+		return this.name+"."+this.surname.charAt(0)+" - "+this.dni;
+	}
 
     
 }

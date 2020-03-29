@@ -6,8 +6,8 @@ public class Hotel {
 	String hotelName;
 	ArrayList<Habitacio> habs = new ArrayList<Habitacio>();
 	ArrayList<Client> client = new ArrayList<Client>();
-	ArrayList<Reserva> reservesPendents = new ArrayList<Reserva>();
-	ArrayList<Reserva> reservesConfirmades = new ArrayList<Reserva>();
+	static ArrayList<Reserva> reservesPendents = new ArrayList<Reserva>();
+	static ArrayList<Reserva> reservesConfirmades = new ArrayList<Reserva>();
 
 
 	// -----------------------------------------------------------------------
@@ -46,7 +46,7 @@ public class Hotel {
 		return reservesPendents;
 	}
 	public void setreservesPendents(ArrayList<Reserva> reservesPendents) {
-		this.reservesPendents = reservesPendents;
+		Hotel.reservesPendents = reservesPendents;
 	}
 	
 	
@@ -54,12 +54,29 @@ public class Hotel {
 		return reservesConfirmades;
 	}
 	public void setreservesConfirmades(ArrayList<Reserva> reservesConfirmades) {
-		this.reservesConfirmades = reservesConfirmades;
+		Hotel.reservesConfirmades = reservesConfirmades;
 	}
 
 
+	
+	public static void getReservaConf(int row) {
+		Hotel.reservesConfirmades.add(reservesPendents.get(row));
+		Hotel.reservesPendents.remove(row);
+	}
+	public static void eliminaResPen(int row) {
+		Hotel.reservesPendents.remove(row);
+	}
+	
 
 	
-	
-	
+	public static void removeReservaConf(Reserva resActual) {
+		if (reservesConfirmades.contains(resActual)) {
+			reservesConfirmades.remove(resActual);
+		}
+		if (reservesPendents.contains(resActual)) {
+			reservesPendents.remove(resActual);
+		}
+	}
+
+
 }

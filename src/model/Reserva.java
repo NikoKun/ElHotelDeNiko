@@ -6,14 +6,14 @@ public class Reserva {
 	Client reservationGuy;
 	Habitacio hab;
 	int numPeople;
-	LocalDate fitstDate, lastDate;
+	LocalDate firstDate, lastDate;
 	
 	// -----------------------------------------------------------------------
 	
 	public Reserva(Client reservationGuy, int numPeople, LocalDate fitstDate, LocalDate lastDate) {
 		this.reservationGuy = reservationGuy;
 		this.numPeople = numPeople;
-		this.fitstDate = fitstDate;
+		this.firstDate = fitstDate;
 		this.lastDate = lastDate;
 	}
 	
@@ -30,7 +30,7 @@ public class Reserva {
 	public int getNumPeople() {
 		return numPeople;
 	}
-
+	
 	public void setNumPeople(int numPeople) {
 		this.numPeople = numPeople;
 	}
@@ -43,12 +43,12 @@ public class Reserva {
 		this.hab = hab;
 	}
 
-	public LocalDate getFitstDate() {
-		return fitstDate;
+	public LocalDate getFirstDate() {
+		return firstDate;
 	}
 
-	public void setFitstDate(LocalDate fitstDate) {
-		this.fitstDate = fitstDate;
+	public void setFirstDate(LocalDate fitstDate) {
+		this.firstDate = fitstDate;
 	}
 
 	public LocalDate getLastDate() {
@@ -59,41 +59,92 @@ public class Reserva {
 		this.lastDate = lastDate;
 	}
 	
-
+	
+	@Override
+	public String toString() {
+		return "N.H."+this.hab.numRoom+" DateIn: "+this.firstDate;
+	}
+	
+	
+	
+	public String firstDateToString() {
+		return 	this.getFirstDate().getDayOfMonth()+"-"+this.getFirstDate().getMonthValue()+"-"+this.getFirstDate().getYear();
+	}
+	public String lastDateToString() {
+		return 	this.getLastDate().getDayOfMonth()+"-"+this.getLastDate().getMonthValue()+"-"+this.getLastDate().getYear();
+	}
 
 	
+	
+
 	public boolean comprovaHabAdecuada(Hotel aquestHotel, int suma) {
-		System.out.println(aquestHotel.getHabs().size());
+		boolean pend = false;
+		boolean pend2 = false;
+		
+		Reserva room1 = null;
+
+		boolean conf = false;
+		boolean conf2 = false;
+
 		for (Habitacio habActual : aquestHotel.getHabs()) {
 			if (habActual.getNumPers() == (this.getNumPeople()+suma)) {	// Coincide el numero de personas
 				for (Reserva resActual : aquestHotel.getreservesPendents()) {
-					if (resActual.gethab().getNumRoom() == habActual.getNumRoom() && !(
-							(this.getFitstDate().isAfter(resActual.getFitstDate().minusDays(1)) && this.getFitstDate().isBefore(resActual.getLastDate())) ||
-							(this.getLastDate().isAfter(resActual.getFitstDate().minusDays(1)) && this.getLastDate().isBefore(resActual.getLastDate())) ||
-							(this.getFitstDate().isBefore(resActual.getFitstDate().minusDays(1)) && this.getLastDate().isAfter(resActual.getLastDate()))
-							))  {
-						this.sethab(resActual.gethab());
-						System.out.println("1");
-						return true;
+					if (resActual.gethab().getNumRoom() == habActual.getNumRoom()) {
+						if (!((this.getFirstDate().isAfter(resActual.getFirstDate().minusDays(1)) && this.getFirstDate().isBefore(resActual.getLastDate())) ||
+								(this.getLastDate().isAfter(resActual.getFirstDate().minusDays(1)) && this.getLastDate().isBefore(resActual.getLastDate())) ||
+								(this.getFirstDate().isBefore(resActual.getFirstDate().minusDays(1)) && this.getLastDate().isAfter(resActual.getLastDate()))
+								))  {	
+							room1 = resActual;
+							pend2 = true;
+						}
+						else {
+							return false;
+						}
 					}
 				}
 				for (Reserva resConfActual : aquestHotel.getreservesConfirmades()) {
-					if (resConfActual.gethab().getNumRoom() == habActual.getNumRoom() && !(
-							(this.getFitstDate().isAfter(resConfActual.getFitstDate().minusDays(1)) && this.getFitstDate().isBefore(resConfActual.getLastDate())) ||
-							(this.getLastDate().isAfter(resConfActual.getFitstDate().minusDays(1)) && this.getLastDate().isBefore(resConfActual.getLastDate())) ||
-							(this.getFitstDate().isBefore(resConfActual.getFitstDate().minusDays(1)) && this.getLastDate().isAfter(resConfActual.getLastDate()))
-							))  {
-						this.sethab(resConfActual.gethab());
-						System.out.println("2");
-						return true;
-					}
+					if (resConfActual.gethab().getNumRoom() == habActual.getNumRoom()) {
+						conf = true;
+						if (!((this.getFirstDate().isAfter(resConfActual.getFirstDate().minusDays(1)) && this.getFirstDate().isBefore(resConfActual.getLastDate())) ||
+								(this.getLastDate().isAfter(resConfActual.getFirstDate().minusDays(1)) && this.getLastDate().isBefore(resConfActual.getLastDate())) ||
+								(this.getFirstDate().isBefore(resConfActual.getFirstDate().minusDays(1)) && this.getLastDate().isAfter(resConfActual.getLastDate()))
+								))  {
+							room1 = resConfActual;
+							conf2 = true;
+						}
+						else {
+							return false;
+						}
+					}					
+				}	
+				System.out.println(pend2+"   "+conf2);
+				if (pend2) {
+					this.reservaCorrecta(room1.gethab());
+					return true;
 				}
-				System.out.println("3");
-				this.sethab(habActual);
-				return true;
+				else if (conf2) {
+					this.reservaCorrecta(room1.gethab());
+					return true;
+				}
+				
+				
+				if (aquestHotel.getreservesPendents().isEmpty() && aquestHotel.getreservesConfirmades().isEmpty()) {
+					this.sethab(habActual);
+					return true;
+				}
+				if (pend || conf) {
+					return false;
+				}
+
 			}
 		}
 		return false;
+	}
+
+	
+	
+	public void reservaCorrecta(Habitacio hab){
+		this.sethab(hab);
 	}
 
 

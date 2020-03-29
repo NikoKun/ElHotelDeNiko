@@ -3,8 +3,8 @@ package controller;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 import com.toedter.calendar.JCalendar;
@@ -19,19 +19,15 @@ public class Main {
 	
 	static Hotel aquestHotel = new Hotel("Hotel De Tona");
 	
-//	static ArrayList<Client> clients = new ArrayList<Client>();
-//	static ArrayList<Habitacio> habitacions = new ArrayList<Habitacio>();
-//	static ArrayList<Reserva> reservesPendents = new ArrayList<Reserva>();
-//	static ArrayList<Reserva> reservesConfirmades = new ArrayList<Reserva>();
-	
-	
-	// Ejecutar la pestaña
+
+	// EJECUTAR LA VIEW
     public static void main(String[] args) throws Exception {
         View f = new View();
+        System.out.println(f);
     }
-
     
-	// Matches en los campos de CLIENTES
+    
+	// MATCHES DE CAMPOS DE TEXTO
 	public static boolean matchesOnlyChar(String contingut) {
 		if (contingut.matches("^[ A-Za-zñÑáàéíóòçúÁÀÉÍÓÒÚ]+$")) {
 			return true;
@@ -72,11 +68,17 @@ public class Main {
 			return false;
 		}
 	}
+	public static boolean matchesSomeChar(String nomHot) {
+		if (!nomHot.matches("( ){0,300}") && !nomHot.matches("")) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 	
 	
-	
-	
-	// Comprova booleans para habilitar el boton de reserva
+	// HABILITADOR DE EL BOTON DE RESERVAS PARA EL CLIENTE
 	public static boolean comprovaClientValid(boolean nomB,boolean cogB,boolean dniB,boolean numNitsB,boolean numPersB){
 		if ( nomB && cogB && dniB && numNitsB && numPersB) {
 			return true;
@@ -87,16 +89,7 @@ public class Main {
 	}
 	
 
-	// Añadir la fecha en string a la tabla de reservas pendientes MODIFICAR --------------------------------------------------------------
-	public static String dataString(JCalendar calendari) {
-		long dataNano = calendari.getDate().getTime();
-		LocalDate dataLocal = Instant.ofEpochMilli(dataNano).atZone(ZoneId.systemDefault()).toLocalDate();
-		String dataString = dataLocal.getDayOfMonth()+"-"+dataLocal.getMonthValue()+"-"+dataLocal.getYear();
-		return dataString;
-	}
-	
-	
-	// Validar DNI
+	// VALIDADOR DE DNI
 	public static boolean validar(String dni) {
         boolean correcte = false;
         int i = 0;
@@ -106,9 +99,7 @@ public class Main {
         int resto = 0;
         char[] asignacionLetra = {'T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X','B', 'N', 'J', 'Z', 'S', 'Q', 'V', 'H', 'L', 'C', 'K', 'E'};
  
- 
         if(dni.length() == 9 && Character.isLetter(dni.charAt(8))) {
- 
             do {
                 caracterASCII = dni.codePointAt(i);
                 correcte = (caracterASCII > 47 && caracterASCII < 58);
@@ -116,22 +107,17 @@ public class Main {
             } 
             while(i < dni.length() - 1 && correcte);     
         }
- 
         if(correcte) {
             letra = Character.toUpperCase(dni.charAt(8));
             miDNI = Integer.parseInt(dni.substring(0,8));
             resto = miDNI % 23;
             correcte = (letra == asignacionLetra[resto]);
         }
- 
         return correcte;
     }
 	
 	
-	
-	// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-	// Hace que el cliente no se repita al añadirlo a la array
+	// COMPROVADOR DE CLIENTE PARA EVITAR REPETICIONES
 	public static boolean comprovaClient(Client newClient) {
 		for (Client clientActual : aquestHotel.getClient()) {
 			if (clientActual.getDni().equalsIgnoreCase(newClient.getDni())) {
@@ -142,8 +128,7 @@ public class Main {
 	}
 	
 	
-	
-	// Hace que la habitación no se repita al añadirlo a la array
+	// COMPROVADOR DE LA HABITACION PARA EVITAR REPETICIONES
 	public static boolean comprovaHab(Habitacio newHab) {
 		for (Habitacio habActual : aquestHotel.getHabs()) {
 			if (habActual.getNumRoom() == newHab.getNumRoom()) {				
@@ -153,42 +138,35 @@ public class Main {
 		return false;
 	}
 	
-	
-	//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	
-	
-	// Añade el cliente a la reserva
+
+	// AÑADIR CLIENTES A LA RESERVA
 	public static void addClientReserva( JTextField nom, JTextField cog, JTextField dni, JTextField numPersones, JTextField numNits, JCalendar calendari) {
     	Client newClient = new Client(dni.getText(), nom.getText(), cog.getText());
 		LocalDate dateIn =  Instant.ofEpochMilli(calendari.getDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
 		Reserva newReserva = new Reserva(newClient, Integer.parseInt(numPersones.getText()), dateIn, dateIn.plusDays(Integer.parseInt(numNits.getText())));		
 		
 		if (newReserva.comprovaHabAdecuada(aquestHotel, 0) || newReserva.comprovaHabAdecuada(aquestHotel, 1)) {
-			// Hab adecuada
-			System.out.println("if");
 	    	if (Main.comprovaClient(newClient)) {
+	    		// CLIENTE ANTIGUO
 	    		aquestHotel.getreservesPendents().add(newReserva);
-	    		View.addResTable(aquestHotel.getreservesPendents(), newClient);
+	    		View.addResTable(aquestHotel.getreservesPendents());
 	    	}
-	    	else {    		
+	    	else {
+	    		// CLIENTE NUEVO
 	    		aquestHotel.getClient().add(newClient);
 	    		aquestHotel.getreservesPendents().add(newReserva);
-	    		View.addResTable(aquestHotel.getreservesPendents(), newClient);
+	    		View.addResTable(aquestHotel.getreservesPendents());
 	    	}
 			View.notiResCorrecte();
 		}	
 		else {
-			// No hay hab
+			// NO HAY HAB
 			View.notiResInCorrecte();
-		}
-		
-		
-//		jtres.rowAtPoint(e.getPoint())
- 	
+		} 	
 	}
 	
 	
-	// Añade la habitacion 
+	// AÑADIR LA HABITACION A LA ARRAYLIST
 	public static boolean addHab(JTextField numRegistre, JTextField persRegistre) {
     	Habitacio newHab = new Habitacio(Integer.parseInt(numRegistre.getText()), Integer.parseInt(persRegistre.getText()));
 		
@@ -209,32 +187,68 @@ public class Main {
 		}
 	}
 
+
+	// CONFIRMAR RESERVAS
+	public static void confirmarPreparaReserva(int row, boolean entSort) {
+		Hotel.getReservaConf(row);
+		View.addResTable(aquestHotel.getreservesPendents());
+		Main.recargaResConf(entSort);
+	}
 	
 	
+	// ELIMINAR LA RESERVA PENDIENTE
+	public static void eliminaResPen(int row) {
+		Hotel.eliminaResPen(row);
+		View.addResTable(aquestHotel.getreservesPendents());
+	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	// ACTUALIZA LAS RESERVAS -----------------------------------------------------------------------------------------------------------
+	public static void recargaResConf(boolean entSort) {
+		View.addResTable(aquestHotel.getreservesPendents()); // -------------
+		if (entSort) {
+			View.addConfTableSortida(aquestHotel.getreservesConfirmades());
+		}
+		else {
+			View.addConfTableEntrada(aquestHotel.getreservesConfirmades());
+		}
+	}
 	
 
-	
 
-
+	public static ArrayList<Client> actualitzaLlista(String consultaReserva) {
+		ArrayList<Client> clients = new ArrayList<Client>();
+		
+		for (Client clientActual : aquestHotel.getClient()) {
+			if (clientActual.getName().toLowerCase().contains(consultaReserva.toLowerCase()) || clientActual.getSurname().toLowerCase().contains(consultaReserva.toLowerCase()) || clientActual.getDni().toLowerCase().contains(consultaReserva.toLowerCase()) ) {
+				clients.add(clientActual);
+			}
+		}
+		return clients;
+	}
+	public static ArrayList<Reserva> actialitzaLlistaReserves(String dni) {
+		ArrayList<Reserva> reserves = new ArrayList<Reserva>();
+		
+		for (Reserva reservaActual : aquestHotel.getreservesConfirmades()) {
+			if (reservaActual.getReservationGuy().getDni().toLowerCase().equalsIgnoreCase(dni)) {
+				reserves.add(reservaActual);
+			}
+		}
+		for (Reserva reservaActual : aquestHotel.getreservesPendents()) {
+			if (reservaActual.getReservationGuy().getDni().toLowerCase().equalsIgnoreCase(dni)) {
+				reserves.add(reservaActual);
+			}
+		}
+		return reserves;
+	}
 	
 	
 	
 	
 	
-	
-	
+	public static void eliminaReserva(Reserva res) {
+		Hotel.removeReservaConf(res);
+	}
 	
 	
 	

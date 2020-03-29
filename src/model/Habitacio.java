@@ -9,7 +9,7 @@ public class Habitacio {
 		this.numRoom = numRoom;
 		this.numPers = numPers;
 	}
-
+	
 	// -----------------------------------------------------------------------
 
 	public int getNumRoom() {

@@ -30,8 +30,12 @@ import model.Client;
 import model.Reserva;
 
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
-
 
 
 public class View extends JFrame{
@@ -40,36 +44,33 @@ public class View extends JFrame{
 
     
     static JPanel panellGestio, panellClient, panellBack;
-    JLabel titleGestio, titleClient, titleBack;
-
-    
-    JLabel dniL, nomL, cogL, numPersonesL, numNitsL, calendariL, nomHotelL, registreNovaHabL, numRegistreL, persRegistreL, consultaReserva, nomClientReservaL, reservaPendentL, reservaConfL;
-    //   Imatges
+    JLabel titleGestio, titleClient, titleBack, dniL, nomL, cogL, numPersonesL, numNitsL, calendariL, nomHotelL, registreNovaHabL, numRegistreL, persRegistreL, consultaReserva, nomClientReservaL, reservaPendentL, reservaConfL;
+    //   IMAGENES
     JLabel nomIMG, cogIMG, dniIMG, numNitsIMG, numPersonesIMG, nomClientReservaIMG, persRegistreIMG, numRegistreIMG, nomHotelIMG;
-    
-    
-    JTextField dni, nom, cog, numPersones, numNits, nomHotel, numRegistre, persRegistre, nomClientReserva;
+    JTextField dni, nom, cog, numPersones, numNits, nomHotel, numRegistre, persRegistre;
 
-    JList llistaNomClients, llistaReserves;
-    
+
+	static JTextField nomClientReserva;
+
+
+	JTextField jtfEntrada;
+    static JList<Client> llistaNomClients;
+    static JList<Reserva> llistaReserves;
     JTable reservaPendent, reservaConf, taulaReservaPendent, taulaReservaConfirmada;
-    
     JCalendar calendari;
-    JDateChooser dataAEscollir;
-    
-    JButton reserva, botoGuarda1, botoGuarda2, botoElimina;
-    
-    JPasswordField jtfEntrada1;
-    JPasswordField jtfEntrada2;
-    JTextField jtfEntrada;
+    Date result;
+    static JDateChooser dataAEscollir;
+    JButton reserva, botoGuarda1, botoGuarda2, botoElimina, botoEntradesSortides;
+    JPasswordField jtfEntrada1,jtfEntrada2;
     JCheckBox mostra;
+    static DefaultTableModel model1, model2;
 
-    static DefaultTableModel model1;
+    static DefaultListModel<Client> model;
+
+    static DefaultListModel<Reserva> modelR;
 
 
-	DefaultTableModel model2;
-    static JScrollPane scroll1, scroll2;
-    
+    static JScrollPane scroll1, scroll2, scroll, scrollR;
 	boolean nomB = false, cogB = false, dniB = false, numNitsB = false, numPersB = false, numRegistreB = false, persRegistreB = false;
 
 	
@@ -79,45 +80,33 @@ public class View extends JFrame{
         this.setLayout(null);
         this.setSize(1200, 700);
         this.setLocationRelativeTo(null);                      
-//        this.setResizable(false);
         this.setMinimumSize(new Dimension(1200, 700));
         this.getContentPane().setBackground(Color.black);
         this.setTitle("Hotel de ensueño");
 
-        
         posarPanells();
         posarTitle();
         
-        // PanellClients
-        posarInfoClient();
-        posarCalendari();
-        posarBotoReserva();
-
-        
-        // PanellBack
-        posarNomHotel();
-        posarBotoGuarda1();
-        posarRegistreNovaHabitacio();
-        posarBotoGuarda2();
-        posarConsultaReserva();
-        posarBotoElimina();
+        // PANEL CLIENTES
+        posarInfoPanellClients();
+        // PANEL BACK
+        posarInfoPanellBack();
+        // PANEL GESTION
+        posarInfoPanellGestio();
         
         
-        // PanellGestiÃ³
-        posarReservaPendent();
-        
-        
-        listenerTexts();
+        listeners();
 
     }
-
+    
+    
+    // PANELES
     public void posarPanells(){
         panellGestio = new JPanel();
         panellGestio.setLayout(null);
         panellGestio.setBackground(Color.white);
         panellGestio.setBounds(0, 0, 400, 700);
         this.getContentPane().add(panellGestio);
-
         
         panellClient = new JPanel();
         panellClient.setLayout(null);
@@ -125,7 +114,6 @@ public class View extends JFrame{
         panellClient.setBounds(402, 0, 400, 700);
         this.getContentPane().add(panellClient);
 
-        
         panellBack = new JPanel();
         panellBack.setLayout(null);
         panellBack.setBackground(Color.white);
@@ -133,6 +121,8 @@ public class View extends JFrame{
         this.getContentPane().add(panellBack);
     }
 
+    
+    // TITULOS DE LOS PANELES
     public void posarTitle(){
     	titleGestio = new JLabel();
     	titleGestio.setBounds(0,20, panellGestio.getWidth(),40);
@@ -141,14 +131,12 @@ public class View extends JFrame{
     	titleGestio.setText("Gestió");
         panellGestio.add(titleGestio);
         
-        
         titleClient = new JLabel();
         titleClient.setBounds(0,20, panellClient.getWidth(),40);
         titleClient.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
         titleClient.setFont(new Font("Liberation Serif", Font.BOLD, 30));
         titleClient.setText("Clients");
         panellClient.add(titleClient);
-        
         
         titleBack = new JLabel();
         titleBack.setBounds(0,20, panellBack.getWidth(),40);
@@ -159,8 +147,10 @@ public class View extends JFrame{
     }
     
     
-    
-    public void posarInfoClient(){
+    // INFO PANEL CLIENTES
+    public void posarInfoPanellClients(){
+    	
+    	// DNI
     	dniL = new JLabel();
     	dniL.setBounds(20,80,200,50);
     	dniL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -177,6 +167,7 @@ public class View extends JFrame{
     	panellClient.add(dniIMG);
     	
         
+    	// NOMBRE
     	nomL = new JLabel();
     	nomL.setBounds(20,110,200,50);
     	nomL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -193,9 +184,7 @@ public class View extends JFrame{
     	panellClient.add(nomIMG);
 
     	
-        
-        
-    	
+        // APELLIDO    	
     	cogL = new JLabel();
     	cogL.setBounds(20,140,200,50);
     	cogL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -212,8 +201,7 @@ public class View extends JFrame{
     	panellClient.add(cogIMG);
         
      
-
-        
+    	// NUMERO DE PERSONAS
     	numPersonesL = new JLabel();
     	numPersonesL.setBounds(20,170,200,50);
     	numPersonesL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -230,8 +218,7 @@ public class View extends JFrame{
     	panellClient.add(numPersonesIMG);
         
         
-    	
-    	
+    	// NUMERO DE NOCHES
     	numNitsL = new JLabel();
     	numNitsL.setBounds(20,200,200,50);
     	numNitsL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -246,11 +233,9 @@ public class View extends JFrame{
         numNitsIMG = new JLabel();
         numNitsIMG.setBounds(250,200,200,50);
     	panellClient.add(numNitsIMG);
-    }
-    
-    
-    
-    public void posarCalendari() {
+    	
+    	
+    	// CALENDARIO
     	calendariL = new JLabel();
     	calendariL.setBounds(20,260,250,50);
     	calendariL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -259,25 +244,26 @@ public class View extends JFrame{
     	
     	calendari = new JCalendar();
     	calendari.setBounds(50,325,300,250);
-    	
-    	JCalendar calendariAvui = new JCalendar();
-    	calendari.setMinSelectableDate(calendariAvui.getCalendar().getTime());
+    	long currentMilliseconds = System.currentTimeMillis();
+        result = new Date(currentMilliseconds); 
+    	calendari.setDate(result);
+    	calendari.setMinSelectableDate(result);
         panellClient.add(calendari);
-    }
-    
-    
-    
-    public void posarBotoReserva() {
+        
+        
+        // BOTON DE GUARDAR RESERVA
     	reserva = new JButton("Reserva");
     	reserva.setBounds(150,610, panellClient.getWidth() -300,30);
     	reserva.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
     	reserva.setEnabled(false);
         panellClient.add(reserva);
     }
+
+
     
-    
-    
-    public void posarNomHotel() {
+    public void posarInfoPanellBack() {
+    	
+    	// NOMBRE DEL HOTEL
     	nomHotelL = new JLabel();
     	nomHotelL.setBounds(20,77,200,50);
     	nomHotelL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -286,36 +272,27 @@ public class View extends JFrame{
     	
     	nomHotel = new JTextField("");
     	nomHotel.setBounds(130,95,200,20);
-    	nomHotel.setName("nomHotel");
+    	nomHotel.setName("nomHot");
     	panellBack.add(nomHotel);
     	
-    	nomHotelIMG = new JLabel();
-    	nomHotelIMG.setBounds(250,95,200,20);
-    	panellClient.add(nomHotelIMG);
-    }
-    
-    
-    
-    public void posarBotoGuarda1() {
+    	
+    	//BOTON GUARDA NOMBRE
     	botoGuarda1 = new JButton("Guarda");
     	botoGuarda1.setBounds(150,130, panellBack.getWidth() -300,30);
     	botoGuarda1.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
     	botoGuarda1.setName("botoGuarda1");
     	botoGuarda1.setEnabled(false);
     	panellBack.add(botoGuarda1);
-    }
-    
-    
-    
-    public void posarRegistreNovaHabitacio() {	
+    	
+    	
+    	// REGISTRAR NUEVA HAB
     	registreNovaHabL = new JLabel();
     	registreNovaHabL.setBounds(20,175,250,50);
     	registreNovaHabL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
     	registreNovaHabL.setText("Registre nova habitació");
     	panellBack.add(registreNovaHabL);
     	
-    	
-    	
+    	// N.HAB
     	numRegistreL = new JLabel();
     	numRegistreL.setBounds(20,210,250,50);
     	numRegistreL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -331,8 +308,7 @@ public class View extends JFrame{
     	numRegistreIMG.setBounds(160,225,80,20);
     	panellBack.add(numRegistreIMG);
     	
-
-    	
+    	// N.PERSONAS
     	persRegistreL = new JLabel();
     	persRegistreL.setBounds(200,210,250,50);
     	persRegistreL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
@@ -347,84 +323,70 @@ public class View extends JFrame{
     	persRegistreIMG = new JLabel();
     	persRegistreIMG.setBounds(340,225,80,20);
     	panellBack.add(persRegistreIMG);
-    }
-    
-    
-    
-    public void posarBotoGuarda2() {
+    	
+    	// GUARDAR HAB REGISTRADA
     	botoGuarda2 = new JButton("Guarda");
     	botoGuarda2.setBounds(150,260, panellBack.getWidth() -300,30);
     	botoGuarda2.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
 		botoGuarda2.setEnabled(false);
     	panellBack.add(botoGuarda2);
-    }
-    
-    
-    
-    public void posarConsultaReserva() {
+    	
+    	
+    	
+    	// RESERVAS DE CLIENTES
     	consultaReserva = new JLabel();
     	consultaReserva.setBounds(20,310,250,50);
     	consultaReserva.setFont(new Font("Liberation Serif", Font.BOLD, 17));
     	consultaReserva.setText("Consulta Reserva");
     	panellBack.add(consultaReserva);
     	
-    	
-    	
     	nomClientReservaL = new JLabel();
     	nomClientReservaL.setBounds(50,350,250,50);
     	nomClientReservaL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
     	nomClientReservaL.setText("Nom Client:");
     	panellBack.add(nomClientReservaL);
-    	
+    
     	nomClientReserva = new JTextField("");
     	nomClientReserva.setBounds(155,365,150,20);
+    	nomClientReserva.setName("consReserva");
     	panellBack.add(nomClientReserva);
     	
-    	nomClientReservaIMG = new JLabel();
-    	nomClientReservaIMG.setBounds(360,140,200,50);
-    	panellClient.add(nomClientReservaIMG);
-    	
-
-    	DefaultListModel<String> model = new DefaultListModel<String>();
-    	model.addElement("Wala"); // AÃ‘ADIR INFOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-    	llistaNomClients = new JList<String>(model);
+    	model = new DefaultListModel<Client>();
+    	llistaNomClients = new JList<Client>(model);
     	llistaNomClients.setBounds(30,420,150,150);
+    	llistaNomClients.setName("llistaNomClients");
        	panellBack.add(llistaNomClients);
-    	JScrollPane scroll = new JScrollPane(llistaNomClients, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+       	scroll = new JScrollPane(llistaNomClients, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     	scroll.setBounds(30,420,150,150);
        	panellBack.add(scroll);
        	
-       	
-       	
-    	DefaultListModel<String> modelR = new DefaultListModel<String>();
-    	modelR.addElement("n1"); // AÃ‘ADIR INFOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-    	llistaReserves = new JList<String>(modelR);
+    	modelR = new DefaultListModel<Reserva>();
+    	llistaReserves = new JList<Reserva>(modelR);
     	llistaReserves.setBounds(220,420,150,150);
        	panellBack.add(llistaReserves);
-    	JScrollPane scrollR = new JScrollPane(llistaReserves, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    	scrollR = new JScrollPane(llistaReserves, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     	scrollR.setBounds(220,420,150,150);
        	panellBack.add(scrollR);
-    }
-    
-    
-    
-    public void posarBotoElimina() {
+       	
+
+    	// BOTON PARA ELIMINAR RESERVAS DE CLIENTES
     	botoElimina = new JButton("Elimina");
     	botoElimina.setBounds(150,610, panellBack.getWidth() -300,30);
     	botoElimina.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
     	panellBack.add(botoElimina);
     }
+
     
     
-    
-    public void posarReservaPendent() {
+    public void posarInfoPanellGestio() {
+    	
+    	// PANEL RESERVAS PENDIENTES
     	reservaPendentL = new JLabel();
     	reservaPendentL.setBounds(30,80,200,50);
     	reservaPendentL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
     	reservaPendentL.setText("Reserves pendents");
     	panellGestio.add(reservaPendentL);
-    	
-    	
+
     	model1 = new DefaultTableModel();
     	model1.addColumn("Dia");
     	model1.addColumn("Dni");
@@ -433,76 +395,76 @@ public class View extends JFrame{
     	reservaPendent = new JTable(model1);
     	reservaPendent.setEnabled(false);
     	reservaPendent.getTableHeader().setReorderingAllowed(false);
-    	reservaPendent.setBounds(30,125,340,225);
+    	reservaPendent.setBounds(30,125,340,180);
     	reservaPendent.setFont(new Font("Liberation Serif", Font.PLAIN, 14));
+    	reservaPendent.setName("reservaPendent");
     	panellGestio.add(reservaPendent);
     	scroll1 = new JScrollPane(reservaPendent, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    	scroll1.setBounds(30,125,340,215);
+    	scroll1.setBounds(30,125,340,195);
     	panellGestio.add(scroll1);
     	
     	
-
+    	// PANEL RESERVAS CONFIRMADAS
     	reservaConfL = new JLabel();
-    	reservaConfL.setBounds(30,350,200,50);
+    	reservaConfL.setBounds(30,320,200,50);
     	reservaConfL.setFont(new Font("Liberation Serif", Font.BOLD, 17));
     	reservaConfL.setText("Reserves confirmades");
     	panellGestio.add(reservaConfL);
-    	
-    	
+   	
+    	// DATECHOOSER
     	dataAEscollir = new JDateChooser();
     	dataAEscollir.setBounds(200,365,170,25);
-    	dataAEscollir.setFont(new Font("Liberation Serif", Font.BOLD, 17));
+    	dataAEscollir.setFont(new Font("Liberation Serif", Font.PLAIN, 14));
+    	JCalendar calendariAvui = new JCalendar();
+    	dataAEscollir.setDate(calendariAvui.getCalendar().getTime());
     	panellGestio.add(dataAEscollir);
-    	
-    	
+    
+    	botoEntradesSortides = new JButton("Entrades");
+    	botoEntradesSortides.setBounds(30,365, panellGestio.getWidth() -250,25);
+    	botoEntradesSortides.setHorizontalAlignment(SwingConstants.CENTER);  // CENTRARRRRR
+		botoEntradesSortides.setSelected(false);
+    	panellGestio.add(botoEntradesSortides);
+    
     	model2 = new DefaultTableModel();
     	model2.addColumn("Nom");
     	model2.addColumn("Date In");
     	model2.addColumn("Date Out");
     	model2.addColumn("Habitació");
     	reservaConf = new JTable(model2);
+    	reservaConf.setEnabled(false);
+    	reservaConf.getTableHeader().setReorderingAllowed(false);
     	reservaConf.getTableHeader().setReorderingAllowed(false);
     	reservaConf.setBounds(30,400,340,225);
-    	reservaConf.setFont(new Font("Liberation Serif", Font.BOLD, 17));
+    	reservaConf.setFont(new Font("Liberation Serif", Font.PLAIN, 14));
     	panellGestio.add(reservaConf);
     	scroll2 = new JScrollPane(reservaConf, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     	scroll2.setBounds(30,400,340,215);
     	panellGestio.add(scroll2);
     }
-    
-    
-    
+
 
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    private void listenerTexts() {
+    private void listeners() {
         ImageIcon iconCorrecte = new ImageIcon("BienIcons.png");
         ImageIcon iconCorrecteReduit = new ImageIcon(iconCorrecte.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
         ImageIcon iconIncorrecte = new ImageIcon("MalIcons.png");
         ImageIcon iconIncorrecteReduit = new ImageIcon(iconIncorrecte.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
-        
 
+        // LISTENER PARA PONER EL TITULO
+        ActionListener actionSetTitle = new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					setTitle(nomHotel.getText());
+			}
+        };
+        botoGuarda1.addActionListener(actionSetTitle);
         
+        
+        // LISTENER PARA COMPROVAR LOS CAMPOS DE TEXTO Y HABILITAR LOS BOTONES
         KeyListener listener = new KeyListener(){
-//            JTextField  numNits, numRegistre;
-
 			@Override
 			public void keyReleased(KeyEvent e) {
-				
 				if (e.getComponent().getName().equalsIgnoreCase("nom")) {
 					if (Main.matchesOnlyChar(nom.getText())) {
 						nomIMG.setIcon(iconCorrecteReduit);
@@ -514,7 +476,6 @@ public class View extends JFrame{
 						panellClient.add(nomIMG);
 						nomB = false;
 					}
-					
 					if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 						reserva.setEnabled(true);
 				        panellClient.add(reserva);
@@ -535,7 +496,6 @@ public class View extends JFrame{
 						panellClient.add(cogIMG);
 						cogB = false;
 					}
-					
 					if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 						reserva.setEnabled(true);
 				        panellClient.add(reserva);
@@ -556,7 +516,6 @@ public class View extends JFrame{
 						panellClient.add(dniIMG);
 						dniB = false;
 					}
-					
 					if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 						reserva.setEnabled(true);
 				        panellClient.add(reserva);
@@ -577,7 +536,6 @@ public class View extends JFrame{
 						panellClient.add(numNitsIMG);
 						numNitsB = false;
 					}
-					
 					if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 						reserva.setEnabled(true);
 				        panellClient.add(reserva);
@@ -598,7 +556,6 @@ public class View extends JFrame{
 						panellClient.add(numPersonesIMG);
 						numPersB = false;
 					}
-					
 					if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 						reserva.setEnabled(true);
 				        panellClient.add(reserva);
@@ -608,11 +565,6 @@ public class View extends JFrame{
 				        panellClient.add(reserva);
 					}
 				}
-				
-				
-				
-				
-
 				else if (e.getComponent().getName().equalsIgnoreCase("numRegistre")) {
 					if (Main.matchesPlus1(numRegistre.getText())) {
 						numRegistreIMG.setIcon(iconCorrecteReduit);
@@ -624,7 +576,6 @@ public class View extends JFrame{
 						panellBack.add(numRegistreIMG);
 						numRegistreB = false;
 					}
-					
 					if (numRegistreB && persRegistreB) {
 						botoGuarda2.setEnabled(true);
 				        panellBack.add(botoGuarda2);
@@ -645,7 +596,6 @@ public class View extends JFrame{
 						panellBack.add(persRegistreIMG);
 						persRegistreB = false;
 					}
-					
 					if (numRegistreB && persRegistreB) {
 						botoGuarda2.setEnabled(true);
 						panellBack.add(botoGuarda2);
@@ -677,15 +627,23 @@ public class View extends JFrame{
 						panellClient.add(nomClientReservaIMG);
 					}
 				}
+				else if (e.getComponent().getName().equalsIgnoreCase("nomHot")) {   // POR HACER -----------------------------------
+					if (Main.matchesSomeChar(nomHotel.getText())) {
+						botoGuarda1.setEnabled(true);
+					}
+					else {
+						botoGuarda1.setEnabled(false);
+					}
+				}
+				// CONSULTA DE RESERVA
+				else if (e.getComponent().getName().equalsIgnoreCase("consReserva")) {
+					View.act();
+				}
 			}
-
             @Override
-            public void keyPressed(KeyEvent e) {
-            }
+            public void keyPressed(KeyEvent e) {}
             @Override
-            public void keyTyped(KeyEvent e) {
-            }
-            
+            public void keyTyped(KeyEvent e) {}
         };
 
         dni.addKeyListener(listener);
@@ -696,24 +654,17 @@ public class View extends JFrame{
         persRegistre.addKeyListener(listener);
         numRegistre.addKeyListener(listener);
         nomHotel.addKeyListener(listener);
-
+        nomHotel.addKeyListener(listener);
+        nomClientReserva.addKeyListener(listener);
         
-        ActionListener actionSetTitle = new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {
-					setTitle(nomHotel.getText());
-			}
-        };
-        botoGuarda1.addActionListener(actionSetTitle);
-
-        
-        
+        // LISTENER DEL BOTON PARA CONFIRMAR QUE EL CLIENTE QUIERE HACER LA RESERVA
         ActionListener actrionSetReservaPendent = new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
-				Main.addClientReserva(nom, cog, dni, numPersones, numNits, calendari);
 				
+				Main.addClientReserva(nom, cog, dni, numPersones, numNits, calendari);
+		    	panellGestio.add(scroll1);
+
 		    	// Reset
 		    	dni.setText("");
 		    	dniIMG.setIcon(null);
@@ -726,18 +677,15 @@ public class View extends JFrame{
 		    	numNits.setText("");
 		    	numNitsIMG.setIcon(null);
 		    	
-		        
-		    	calendari = new JCalendar();
-		    	calendari.setBounds(50,325,300,250);
-		    	JCalendar calendariAvui = new JCalendar();
-		    	calendari.setMinSelectableDate(calendariAvui.getCalendar().getTime());
-		        panellClient.add(calendari);
-		    	
+		    
 		    	nomB = false;
 		    	cogB = false;
 		    	dniB = false;
 		    	numNitsB = false;
 		    	numPersB = false;
+		    	if (!Main.matchesSomeChar(consultaReserva.getText())) {
+					View.actSoloRes();
+		    	}
 		    	
 				if (Main.comprovaClientValid(nomB, cogB, dniB, numNitsB, numPersB)) {
 					reserva.setEnabled(true);
@@ -747,45 +695,34 @@ public class View extends JFrame{
 					reserva.setEnabled(false);
 			        panellClient.add(reserva);
 				}
-
-				
 			}
         };
         reserva.addActionListener(actrionSetReservaPendent);
         
         
-        
-        
-        
-        ActionListener actrionSetNewRoom = new ActionListener(){
+        // LISTENER DEL BOTON PARA REGISTRAR UNA NUEVA HABITACION O PARA ELIMINAR UNA RESERVA DE UN CLIENTE
+        ActionListener actionSetNewRoom = new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
 				if (Main.addHab(numRegistre, persRegistre)) {
-					// Noti
 					String[] options = {"Ok"};
 					JOptionPane.showOptionDialog(null, "La habitació s'ha afegit correctament!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options, options[0]);	
 				}
 				else {
-					// Noti
 					String[] options = {"Sí","Cancelar"};
 					int opt = JOptionPane.showOptionDialog(null, "Vols modificar el número de persones de la habitació?", "Confirmació", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options, options[0]);	
 					if (opt == 0) {
 						Main.modHab(numRegistre, persRegistre);
-						// Noti
 						String[] options1 = {"Ok"};
 						JOptionPane.showOptionDialog(null, "La habitació s'ha afegit correctament!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options1, options1[0]);	
 					}
 					else {
-						// Noti
 						String[] options2 = {"Ok"};
 						JOptionPane.showOptionDialog(null, "La habitació no s'ha afegit!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options2, options2[0]);	
 					}					
 				}
 				
-				
-				
-		    	// Reset
+		    	// RESET
 				numRegistre.setText("");
 				numRegistreIMG.setIcon(null);
 				persRegistre.setText("");
@@ -805,52 +742,172 @@ public class View extends JFrame{
 				}
 			}
         };
-        botoGuarda2.addActionListener(actrionSetNewRoom);
+        botoGuarda2.addActionListener(actionSetNewRoom);
         
         
+        // LISTENER PARA CONFIRMAR UNA RESERVA PENDIENTE
+        MouseListener mouse = new MouseListener(){
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if (arg0.getComponent().getName().equalsIgnoreCase("reservaPendent")) {
+					if (arg0.getClickCount() == 2) {
+						int row = reservaPendent.rowAtPoint(arg0.getPoint());
+						String[] options = {"Confirmar-la","Descartar-la","Cancelar"};
+						int num = JOptionPane.showOptionDialog(null, "Vols confirmar la reserva?", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options, options[0]);	
+						if (num == 0) {
+							Main.confirmarPreparaReserva(row, botoEntradesSortides.isSelected());
+					    	panellGestio.add(scroll1);
+					    	panellGestio.add(scroll2);
+							String[] option0 = {"Ok"};
+							JOptionPane.showOptionDialog(null, "La reserva ha sigut confirmada!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, option0, option0[0]);	
+						}
+						else if (num == 1) {
+							Main.eliminaResPen(row);
+							String[] option0 = {"Ok"};
+							JOptionPane.showOptionDialog(null, "La reserva ha sigut eliminada!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, option0, option0[0]);	
+						}				
+					}
+			    	if (!Main.matchesSomeChar(consultaReserva.getText())) {
+						View.actSoloRes();
+			    	}				}
+				else if (arg0.getComponent().getName().equalsIgnoreCase("llistaNomClients")) {
+					View.actSoloRes();
+				}
+			}
+			@Override
+			public void mouseEntered(MouseEvent arg0) {}
+			@Override
+			public void mouseExited(MouseEvent arg0) {}
+			@Override
+			public void mousePressed(MouseEvent arg0) {}
+			@Override
+			public void mouseReleased(MouseEvent arg0) {}
+        };
+        reservaPendent.addMouseListener(mouse);  
+        llistaNomClients.addMouseListener(mouse);  
+        
+        // LISTENER PARA ACTUALIZAR RESERVAS CONFIRMADAS AL CAMBIAR LA FECHA
+        PropertyChangeListener changeDate = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent arg0) {
+					Main.recargaResConf(botoEntradesSortides.isSelected());
+			}
+        };
+        dataAEscollir.addPropertyChangeListener(changeDate);
         
         
+        // LISTENER PARA ACTUALIZAR RESERVAS CONFIRMADAS AL CAMBIAR DE ENTRADAS Y SALIDAS
+        ActionListener entSort = new ActionListener(){
+   			@Override
+   			public void actionPerformed(ActionEvent e) {
+   				if (botoEntradesSortides.isSelected() == false) {
+   					botoEntradesSortides.setText("Sortides");
+   	   				botoEntradesSortides.setSelected(true);
+   					Main.recargaResConf(botoEntradesSortides.isSelected());
+   				}
+   				else {
+   					botoEntradesSortides.setText("Entrades");
+   	   				botoEntradesSortides.setSelected(false);
+   					Main.recargaResConf(botoEntradesSortides.isSelected());
+   				}
+		    	if (!Main.matchesSomeChar(consultaReserva.getText())) {
+					View.actSoloRes();
+		    	}
+		    }
+        };
+        botoEntradesSortides.addActionListener(entSort);
+ 
         
+        // LISTENER PARA EL BOTON DE ELIMINA
+        ActionListener elimina = new ActionListener(){
+   			@Override
+   			public void actionPerformed(ActionEvent e) {
+   				llistaReserves.setSelectedIndex(0);
+   				llistaNomClients.setSelectedIndex(0);
+   				Main.eliminaReserva(llistaReserves.getSelectedValue());
+   				Main.recargaResConf(botoEntradesSortides.isSelected());
+   				View.actSoloRes();
+   			}
+        };
+        botoElimina.addActionListener(elimina);
+
     }
     
     
     
-	// AÑADIR LOS DATOS A LOS OBJETOS --------------------------------------------------------------------------		    	
-	public static void addResTable(ArrayList<Reserva> pendingReservation, Client newClient) {
+//	OTRAS FUNCIONES -------------------------------------------------------------------------------------------------------------------------------
+    
+    
+	// ACTUALIZAR LAS TABLAS DE RESERVAS 	
+	public static void addResTable(ArrayList<Reserva> pendingReservation) {
 		model1.setRowCount(0);
     	for (Reserva reservaActual : pendingReservation) {
-        	String[] infoReservaPendent = {reservaActual.getFitstDate().getDayOfMonth()+"-"+reservaActual.getFitstDate().getMonthValue()+"-"+reservaActual.getFitstDate().getYear(), reservaActual.getReservationGuy().getDni(), String.valueOf((reservaActual.getNumPeople())), reservaActual.gethab().getNumRoom()+""};  // FALTA PONER LA HABITACIÓN ----------------------------	
+        	String[] infoReservaPendent = {reservaActual.getFirstDate().getDayOfMonth()+"-"+reservaActual.getFirstDate().getMonthValue()+"-"+reservaActual.getFirstDate().getYear(), reservaActual.getReservationGuy().getDni(), String.valueOf((reservaActual.getNumPeople())), reservaActual.gethab().getNumRoom()+""};  // FALTA PONER LA HABITACIÓN ----------------------------	
         	model1.addRow(infoReservaPendent);
     	}
-    	panellGestio.add(scroll1);
+	}
+	public static void addConfTableEntrada(ArrayList<Reserva> confirmedReservation) {
+		model2.setRowCount(0);
+		for (Reserva reservaActual : confirmedReservation) {
+			LocalDate dataEsc = dataAEscollir.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			if (reservaActual.getFirstDate().equals(dataEsc) ) {
+		        String[] infoReservaConfirmada = {reservaActual.firstDateToString(), reservaActual.getReservationGuy().getDni(), String.valueOf((reservaActual.getNumPeople())), reservaActual.gethab().getNumRoom()+""};  // FALTA PONER LA HABITACIÓN ----------------------------	
+		        model2.addRow(infoReservaConfirmada);
+			}
+		}
+	}
+	public static void addConfTableSortida(ArrayList<Reserva> confirmedReservation) {
+		model2.setRowCount(0);
+		for (Reserva reservaActual : confirmedReservation) {
+			LocalDate dataEsc = dataAEscollir.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			if (reservaActual.getLastDate().equals(dataEsc) ) {
+		        String[] infoReservaConfirmada = {reservaActual.lastDateToString(), reservaActual.getReservationGuy().getDni(), String.valueOf((reservaActual.getNumPeople())), reservaActual.gethab().getNumRoom()+""};  // FALTA PONER LA HABITACIÓN ----------------------------	
+		        model2.addRow(infoReservaConfirmada);
+			}
+		}
 	}
     
-    
-    
 
-    
-    
-    
+    // NOTIFICACIONES DE LAS RESERVAS PARA EL CLIENTE
 	public static void notiResCorrecte() {
-		// Noti
 		String[] options = {"Ok"};
 		JOptionPane.showOptionDialog(null, "La reserva s'ha realitzat correctament!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options, options[0]);	
 	}
 	public static void notiResInCorrecte() {
-		// Noti
 		String[] options = {"Ok"};
 		JOptionPane.showOptionDialog(null, "No hi han habitacions per a realitzar la reserva!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, options, options[0]);	
 	}
+
+    
+    
+    
+    
+    
+	public static void act() {
+		model.clear();
+		modelR.clear();
+		for (Client clientActual : Main.actualitzaLlista(nomClientReserva.getText())) {
+	    	model.addElement(clientActual);
+		}
+		llistaNomClients.setSelectedIndex(0);
+		
+		for (Reserva reservaActual : Main.actialitzaLlistaReserves(llistaNomClients.getSelectedValue().getDni())) {
+	    	modelR.addElement(reservaActual);
+		}
+		llistaReserves.setSelectedIndex(0);
+       	panellBack.add(scroll);
+       	panellBack.add(scrollR);
+	}
+	public static void actSoloRes() {
+		modelR.clear();
+		for (Reserva reservaActual : Main.actialitzaLlistaReserves(llistaNomClients.getSelectedValue().getDni())) {
+	    	modelR.addElement(reservaActual);
+		}
+		llistaReserves.setSelectedIndex(0);
+       	panellBack.add(scrollR);
+	}
+    
 	
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
