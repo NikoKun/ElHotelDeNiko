@@ -767,9 +767,8 @@ public class View extends JFrame{
 							JOptionPane.showOptionDialog(null, "La reserva ha sigut eliminada!", "Avís", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, option0, option0[0]);	
 						}				
 					}
-			    	if (!Main.matchesSomeChar(consultaReserva.getText())) {
-						View.actSoloRes();
-			    	}				}
+					View.actSoloRes();
+			    }
 				else if (arg0.getComponent().getName().equalsIgnoreCase("llistaNomClients")) {
 					View.actSoloRes();
 				}
