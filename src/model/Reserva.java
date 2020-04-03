@@ -2,6 +2,8 @@ package model;
 
 import java.time.LocalDate;
 
+import controller.Files;
+
 public class Reserva {
 	Client reservationGuy;
 	Habitacio hab;
@@ -117,7 +119,6 @@ public class Reserva {
 						}
 					}					
 				}	
-				System.out.println(pend2+"   "+conf2);
 				if (pend2) {
 					this.reservaCorrecta(room1.gethab());
 					return true;
@@ -130,6 +131,7 @@ public class Reserva {
 				
 				if (aquestHotel.getreservesPendents().isEmpty() && aquestHotel.getreservesConfirmades().isEmpty()) {
 					this.sethab(habActual);
+					Files.omplirFileRes(this, false);
 					return true;
 				}
 				if (pend || conf) {
@@ -145,6 +147,7 @@ public class Reserva {
 	
 	public void reservaCorrecta(Habitacio hab){
 		this.sethab(hab);
+		Files.omplirFileRes(this, false);
 	}
 
 

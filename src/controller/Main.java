@@ -23,7 +23,7 @@ public class Main {
 	// EJECUTAR LA VIEW
     public static void main(String[] args) throws Exception {
         View f = new View();
-        System.out.println(f);
+		Files a = new Files();
     }
     
     
@@ -153,6 +153,7 @@ public class Main {
 	    	}
 	    	else {
 	    		// CLIENTE NUEVO
+	    		Files.omplirFileClie(newClient);
 	    		aquestHotel.getClient().add(newClient);
 	    		aquestHotel.getreservesPendents().add(newReserva);
 	    		View.addResTable(aquestHotel.getreservesPendents());
@@ -172,6 +173,7 @@ public class Main {
 		
     	if (!Main.comprovaHab(newHab)) {
     		aquestHotel.getHabs().add(newHab);
+    		Files.omplirFileHabs(newHab);
     		return true;
     	}
     	else {
@@ -185,6 +187,7 @@ public class Main {
 				habActual.setNumPers(newHab.getNumPers());
 			}
 		}
+		Files.modificarFileHabs(newHab);
 	}
 
 
@@ -200,6 +203,7 @@ public class Main {
 	public static void eliminaResPen(int row) {
 		Hotel.eliminaResPen(row);
 		View.addResTable(aquestHotel.getreservesPendents());
+		View.actSoloRes();
 	}
 	
 	
